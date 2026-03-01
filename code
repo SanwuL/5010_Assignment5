@@ -1,1 +1,80 @@
+let agents = []
+let count = 100
+let Mpoint = null     
+let alter = false     
 
+function setup() {
+  createCanvas(400, 400)
+  strokeWeight(5)
+
+  for (let i = 0; i < count; i++) {
+    let d = random()
+    agents.push({
+      d: d,
+      r: map(d, 0, 1, 60, 140),
+      x: random(width),
+      y: random(height),
+      vx: random(-1, 1),
+      vy: random(-1, 1)
+    })
+  }
+}
+
+function draw() {
+  background(0)
+  if (Mpoint) {
+    Mpoint.x = mouseX
+    Mpoint.y = mouseY
+    stroke(alter ? 'yellow' : 'blue')
+    strokeWeight(8)
+    point(Mpoint.x, Mpoint.y)
+    strokeWeight(5)
+  }
+  for (let a of agents) {
+    a.vx += random(-0.01, 0.01)
+    a.vy += random(-0.01, 0.01)
+    if (Mpoint) {
+      let dirX = Mpoint.x - a.x
+      let dirY = Mpoint.y - a.y
+      let distanceToM = sqrt(dirX * dirX + dirY * dirY) + 0.0001
+      let unitX = dirX / distanceToM
+      let unitY = dirY / distanceToM
+      let isWhite = (a.d < 0.7)
+      let attract = alter ? !isWhite : isWhite
+      if (attract) {
+        if (distanceToM > a.r) {
+          let attractForce = 0.02
+          a.vx += unitX * attractForce
+          a.vy += unitY * attractForce
+        } else {
+          a.vx *= 0.80
+          a.vy *= 0.80
+        }
+      } else {
+        if (distanceToM < a.r) {
+          let repelForce = 0.05
+          a.vx -= unitX * repelForce
+          a.vy -= unitY * repelForce
+        }
+      }
+    }
+    a.x += a.vx
+    a.y += a.vy
+    if (a.x < 0) a.x += width
+    if (a.x > width) a.x -= width
+    if (a.y < 0) a.y += height
+    if (a.y > height) a.y -= height
+    stroke(a.d < 0.7 ? 'white' : 'red')
+    point(a.x, a.y)
+  }
+}
+
+function mousePressed() {
+  if (!Mpoint) {
+    Mpoint = { x: mouseX, y: mouseY }
+  } else {
+    alter = !alter
+    Mpoint.x = mouseX
+    Mpoint.y = mouseY
+  }
+}
